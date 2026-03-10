@@ -9,7 +9,6 @@
 <meta name="apple-mobile-web-app-title" content="Davomat">
 <link rel="manifest" href="manifest.json">
 <title>КормандҚАЙД</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800;900&family=Noto+Sans:wght@300;400;600&display=swap');
 
@@ -860,101 +859,93 @@ function openModal(src,name,label){
 function closeModal(){document.getElementById('modal').classList.remove('sh');}
 
 // ══════════════════════════════════════════════
-// PDF EXPORT — LOG
+// PDF via PRINT WINDOW (supports Tajik Unicode)
 // ══════════════════════════════════════════════
-function exportLogPDF(){
-  const ds=logDate||todayStr();
-  const dayLogs=logs.filter(l=>l.dt===ds).filter(l=>l.s).sort((a,b)=>{
-    const ta=a.s.split(':').map(Number),tb=b.s.split(':').map(Number);return(ta[0]*60+ta[1])-(tb[0]*60+tb[1]);
-  });
-  const absent=emps.filter(e=>!dayLogs.find(l=>l.id===e.id));
-
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-
-  // Header
-  doc.setFontSize(18);doc.setTextColor(0,150,200);
-  doc.text('KormandQAYD — Jurnal',14,18);
-  doc.setFontSize(11);doc.setTextColor(80,80,80);
-  doc.text('Sana: '+ds,14,26);
-  doc.text('Qayd shuda: '+dayLogs.length+' | Goyib: '+absent.length,14,32);
-
-  // Present table
-  doc.setFontSize(12);doc.setTextColor(0,180,80);
-  doc.text('✓ Qayd shuda ('+dayLogs.length+' nafar)',14,42);
-  doc.setFontSize(9);doc.setTextColor(40,40,40);
-  const headers=['#','Nom','Boshlanish','Tugash','Vaqt'];
-  const rows=dayLogs.map((l,i)=>{
-    let dur='—';
-    if(l.s&&l.e){const[sh,sm]=l.s.split(':').map(Number),[eh,em]=l.e.split(':').map(Number),m=(eh*60+em)-(sh*60+sm);if(m>0)dur=m>=60?Math.floor(m/60)+'s '+(m%60)+'d':m+'d';}
-    return[String(i+1),l.nm,l.s||'—',l.e||'—',dur];
-  });
-
-  let y=47;
-  const colW=[10,70,25,25,20];
-  // Header row
-  doc.setFillColor(0,100,180);doc.setTextColor(255,255,255);
-  doc.rect(14,y,150,7,'F');
-  let x=14;headers.forEach((h,i)=>{doc.text(h,x+2,y+5);x+=colW[i];});
-  y+=7;
-  // Data rows
-  rows.forEach((row,ri)=>{
-    doc.setFillColor(ri%2?248:255,ri%2?250:255,ri%2?255:255);
-    doc.setTextColor(40,40,40);
-    doc.rect(14,y,150,6,'F');
-    x=14;row.forEach((cell,i)=>{doc.text(String(cell).substring(0,30),x+2,y+4.5);x+=colW[i];});
-    y+=6;
-    if(y>270){doc.addPage();y=20;}
-  });
-
-  // Absent table
-  if(absent.length){
-    y+=8;
-    doc.setFontSize(12);doc.setTextColor(200,50,50);
-    doc.text('✗ Goyib ('+absent.length+' nafar)',14,y);y+=6;
-    doc.setFontSize(9);
-    const aHeaders=['#','Nom','Lavozim'];
-    const aRows=absent.map((e,i)=>[String(i+1),e.fn,e.rl]);
-    doc.setFillColor(180,0,0);doc.setTextColor(255,255,255);
-    doc.rect(14,y,100,7,'F');
-    x=14;[12,60,28].forEach((w,i)=>{doc.text(aHeaders[i],x+2,y+5);x+=w;});y+=7;
-    aRows.forEach((row,ri)=>{
-      doc.setFillColor(ri%2?255:248,ri%2?248:255,ri%2?248:255);doc.setTextColor(40,40,40);
-      doc.rect(14,y,100,6,'F');
-      x=14;[12,60,28].forEach((w,i)=>{doc.text(String(row[i]).substring(0,25),x+2,y+4.5);x+=w;});y+=6;
-      if(y>270){doc.addPage();y=20;}
-    });
-  }
-
-  doc.save('davomat-'+ds.replace(/\./g,'-')+'.pdf');
-  toast('📄 PDF тайёр шуд','var(--green)');
+function printStyles(){
+  return `@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans',Arial,sans-serif;font-size:11px;color:#111;background:#fff;padding:18px 22px;}
+  h1{font-size:18px;color:#0077bb;margin-bottom:4px;}
+  .meta{font-size:10px;color:#555;margin-bottom:14px;}
+  .section-title{font-size:13px;font-weight:700;padding:6px 10px;border-radius:5px;margin:14px 0 7px;}
+  .present-title{background:#d4f5e0;color:#006630;border:1px solid #80d4a0;}
+  .absent-title{background:#fde8e8;color:#990000;border:1px solid #e8a0a0;}
+  table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+  th{background:#0055aa;color:#fff;padding:6px 8px;text-align:left;font-size:10px;}
+  td{padding:5px 8px;border-bottom:1px solid #e0e0e0;font-size:10px;}
+  tr:nth-child(even) td{background:#f5f8ff;}
+  .num{width:28px;text-align:center;font-weight:700;color:#0055aa;}
+  .absent th{background:#cc2200;}
+  .absent tr:nth-child(even) td{background:#fff5f5;}
+  .footer{margin-top:18px;font-size:9px;color:#999;border-top:1px solid #ddd;padding-top:6px;text-align:center;}
+  @media print{body{padding:10px;} button{display:none;}}`;
 }
 
-// ══════════════════════════════════════════════
-// PDF EXPORT — EMPLOYEE LIST
-// ══════════════════════════════════════════════
-function exportEmpPDF(){
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  doc.setFontSize(16);doc.setTextColor(0,150,200);
-  doc.text('KormandQAYD — Xodimlar royxati',14,16);
-  doc.setFontSize(10);doc.setTextColor(100,100,100);
-  doc.text('Jami: '+emps.length+' nafar | Sana: '+todayStr(),14,23);
-  const headers=['#','Ism Familiya','Login','Lavozim','Qo\'shilgan'];
-  const rows=emps.map((e,i)=>[String(i+1),e.fn,e.lg,e.rl,e.dt||'']);
-  let y=30;
-  const colW=[10,60,35,30,20];
-  doc.setFillColor(0,100,180);doc.setTextColor(255,255,255);
-  doc.rect(14,y,155,7,'F');
-  let x=14;headers.forEach((h,i)=>{doc.text(h,x+1,y+5);x+=colW[i];});y+=7;
-  rows.forEach((row,ri)=>{
-    doc.setFillColor(ri%2?248:255,ri%2?250:255,255);doc.setTextColor(30,30,30);
-    doc.rect(14,y,155,6,'F');
-    x=14;row.forEach((cell,i)=>{doc.text(String(cell).substring(0,28),x+1,y+4.5);x+=colW[i];});y+=6;
-    if(y>275){doc.addPage();y=15;}
+function openPrintWindow(title, bodyHtml){
+  const w=window.open('','_blank','width=800,height=900');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><style>${printStyles()}</style></head><body>
+  <div style="text-align:right;margin-bottom:10px"><button onclick="window.print()" style="background:#0055aa;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer">🖨️ Чоп / PDF</button></div>
+  ${bodyHtml}
+  <div class="footer">КормандҚАЙД · ${new Date().toLocaleString('ru')}</div>
+  </body></html>`);
+  w.document.close();
+}
+
+function exportLogPDF(){
+  const ds=logDate||todayStr();
+  const present=logs.filter(l=>l.dt===ds&&l.s).sort((a,b)=>{
+    const ta=a.s.split(':').map(Number),tb=b.s.split(':').map(Number);
+    return(ta[0]*60+ta[1])-(tb[0]*60+tb[1]);
   });
-  doc.save('xodimlar-'+todayStr().replace(/\./g,'-')+'.pdf');
-  toast('📄 PDF тайёр шуд','var(--green)');
+  const presentIds=new Set(present.map(l=>l.id));
+  const absent=emps.filter(e=>!presentIds.has(e.id));
+
+  let html=`<h1>📋 КормандҚАЙД — Журнали Ҳузур</h1>
+  <div class="meta">Сана: <b>${ds}</b> &nbsp;|&nbsp; Қайд шуда: <b>${present.length}</b> нафар &nbsp;|&nbsp; Ғоиб: <b>${absent.length}</b> нафар</div>`;
+
+  // Present
+  html+=`<div class="section-title present-title">✅ Қайд шуда — ${present.length} нафар</div>`;
+  html+=`<table><thead><tr><th class="num">#</th><th>Ном ва Насаб</th><th>Вазифа</th><th>Оғоз</th><th>Анҷом</th><th>Вақти корӣ</th></tr></thead><tbody>`;
+  if(present.length){
+    present.forEach((l,i)=>{
+      let dur='—';
+      if(l.s&&l.e){const[sh,sm]=l.s.split(':').map(Number),[eh,em]=l.e.split(':').map(Number),m=(eh*60+em)-(sh*60+sm);if(m>0)dur=m>=60?Math.floor(m/60)+' соат '+(m%60)+' дақ':m+' дақ';}
+      const emp=emps.find(e=>e.id===l.id);
+      html+=`<tr><td class="num">${i+1}</td><td><b>${l.nm}</b></td><td>${emp?.rl||''}</td><td style="color:#006600;font-weight:700">${l.s||'—'}</td><td style="color:#cc0000;font-weight:700">${l.e||'—'}</td><td style="font-weight:700;color:#0055aa">${dur}</td></tr>`;
+    });
+  } else {
+    html+=`<tr><td colspan="6" style="text-align:center;color:#999;padding:12px">Маълумот нест</td></tr>`;
+  }
+  html+='</tbody></table>';
+
+  // Absent
+  if(absent.length){
+    html+=`<div class="section-title absent-title">❌ Ғоиб — ${absent.length} нафар</div>`;
+    html+=`<table class="absent"><thead><tr><th class="num">#</th><th>Ном ва Насаб</th><th>Вазифа</th><th>Ҳолат</th></tr></thead><tbody>`;
+    absent.forEach((e,i)=>{
+      html+=`<tr><td class="num">${i+1}</td><td><b>${e.fn}</b></td><td>${e.rl}</td><td style="color:#cc0000;font-weight:700">Ғоиб</td></tr>`;
+    });
+    html+='</tbody></table>';
+  }
+
+  openPrintWindow('Журнали Ҳузур — '+ds, html);
+  toast('📄 Чоп/PDF тайёр','var(--green)');
+}
+
+function exportEmpPDF(){
+  let html=`<h1>👥 КормандҚАЙД — Рӯйхати Кормандон</h1>
+  <div class="meta">Ҷами: <b>${emps.length}</b> нафар &nbsp;|&nbsp; Сана: <b>${todayStr()}</b></div>
+  <table><thead><tr><th class="num">#</th><th>Ном ва Насаб</th><th>Логин</th><th>Вазифа</th><th>Санаи қайд</th></tr></thead><tbody>`;
+  if(emps.length){
+    emps.forEach((e,i)=>{
+      html+=`<tr><td class="num">${i+1}</td><td><b>${e.fn}</b></td><td style="color:#555">${e.lg}</td><td>${e.rl}</td><td style="color:#888">${e.dt||'—'}</td></tr>`;
+    });
+  } else {
+    html+=`<tr><td colspan="5" style="text-align:center;color:#999;padding:12px">Корманд нест</td></tr>`;
+  }
+  html+='</tbody></table>';
+  openPrintWindow('Рӯйхати Кормандон', html);
+  toast('📄 Чоп/PDF тайёр','var(--green)');
 }
 
 // ══════════════════════════════════════════════
