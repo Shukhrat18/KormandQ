@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#00c9ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Davomat">
+<link rel="manifest" href="manifest.json">
+<title>КормандҚАЙД</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800;900&family=Noto+Sans:wght@300;400;600&display=swap');
+
+/* ═══ THEMES ═══ */
+:root{
+  --bg:#060d1a;--panel:#0d1b2e;--card:#0f2140;--card2:#0e1d38;
+  --accent:#00c9ff;--accent2:#0055cc;
+  --green:#00e676;--red:#ff4444;--orange:#ff9f00;--purple:#a78bfa;
+  --text:#e0eeff;--text2:#b0c8e8;--muted:#4a6a90;
+  --border:rgba(0,201,255,0.18);--border2:rgba(0,201,255,0.08);
+  --shadow:0 4px 24px rgba(0,0,0,0.5);
+  --input-bg:rgba(255,255,255,0.05);
+}
+[data-theme="light"]{
+  --bg:#f0f4f8;--panel:#ffffff;--card:#ffffff;--card2:#f8fafc;
+  --text:#1a2744;--text2:#3a5070;--muted:#7a9abb;
+  --border:rgba(0,100,200,0.15);--border2:rgba(0,100,200,0.07);
+  --shadow:0 4px 24px rgba(0,0,0,0.1);
+  --input-bg:rgba(0,0,0,0.04);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans',sans-serif;overflow-x:hidden;transition:background .3s,color .3s;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border2) 1px,transparent 1px),linear-gradient(90deg,var(--border2) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;}
+
+/* HEADER */
+header{background:linear-gradient(135deg,var(--panel),var(--card));border-bottom:1px solid var(--border);padding:0 14px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1rem;color:var(--accent);}
+.logo b{color:var(--text);font-weight:300;}
+.header-right{display:flex;align-items:center;gap:10px;}
+#htime{font-family:'Exo 2',sans-serif;font-size:.65rem;color:var(--muted);text-align:right;line-height:1.5;}
+#htime span{display:block;font-size:.85rem;color:var(--accent);font-weight:700;}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:1rem;color:var(--text);transition:all .2s;}
+.theme-btn:active{transform:scale(.9);}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;animation:fu .25s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* MENU */
+.menu{min-height:calc(100vh - 56px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 14px;gap:20px;}
+.mh h1{font-family:'Exo 2',sans-serif;font-size:1.35rem;font-weight:900;text-align:center;background:linear-gradient(135deg,var(--accent),#7a6fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.mh p{color:var(--muted);font-size:.78rem;text-align:center;margin-top:4px;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px;}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);}
+.mc:active{transform:scale(.95);}.mc .ic{font-size:1.7rem;margin-bottom:5px;}
+.mc h3{font-family:'Exo 2',sans-serif;font-size:.83rem;font-weight:700;color:var(--text);}
+.mc p{font-size:.67rem;color:var(--muted);margin-top:3px;line-height:1.3;}.mc.w{grid-column:1/-1;}
+
+/* LAYOUT */
+.wrap{max-width:520px;margin:0 auto;padding:12px 12px 30px;}
+.wrap.wide{max-width:800px;}
+.back{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:.8rem;cursor:pointer;background:none;border:none;margin-bottom:12px;padding:4px 0;}
+.back:active{color:var(--accent);}
+.stitle{font-family:'Exo 2',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent);margin-bottom:12px;}
+.cd{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:10px;box-shadow:var(--shadow);}
+
+/* INPUTS */
+label{display:block;font-size:.68rem;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px;}
+input[type=text],input[type=password],input[type=date]{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-size:.9rem;outline:none;margin-bottom:9px;-webkit-appearance:none;font-family:'Noto Sans',sans-serif;transition:border-color .2s;}
+input:focus{border-color:var(--accent);}input::placeholder{color:var(--muted);}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;border-radius:10px;font-family:'Exo 2',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;border:none;width:100%;-webkit-appearance:none;transition:all .15s;}
+.btn:active{transform:scale(.97);}
+.btn-p{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;}
+.btn-ol{background:var(--input-bg);color:var(--accent);border:1px solid var(--border);}
+.btn-green{background:linear-gradient(135deg,#004d20,var(--green));color:#000;}
+.btn-red{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3);}
+.btn-orange{background:rgba(255,159,0,.15);color:var(--orange);border:1px solid rgba(255,159,0,.3);}
+.btn-purple{background:rgba(167,139,250,.15);color:var(--purple);border:1px solid rgba(167,139,250,.3);}
+.btn-sm{width:auto;padding:7px 11px;font-size:.76rem;}
+.btn:disabled{opacity:.3;pointer-events:none;}
+.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px;}
+
+/* CAMERA */
+.co{position:relative;width:100%;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;border:2px solid var(--border);margin-bottom:9px;}
+video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
+.cam-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:155px;height:155px;border-radius:50%;border:3px solid var(--accent);box-shadow:0 0 0 2000px rgba(0,0,0,.5),0 0 25px var(--accent);pointer-events:none;animation:rp 1.5s infinite;}
+@keyframes rp{0%,100%{box-shadow:0 0 0 2000px rgba(0,0,0,.5),0 0 15px var(--accent)}50%{box-shadow:0 0 0 2000px rgba(0,0,0,.5),0 0 35px var(--accent)}}
+.cam-sl{position:absolute;left:50%;transform:translateX(-50%);width:135px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);pointer-events:none;animation:sa 2s linear infinite;}
+@keyframes sa{0%{top:calc(50% - 73px);opacity:1}80%{opacity:1}100%{top:calc(50% + 73px);opacity:0}}
+.cam-msg{position:absolute;bottom:0;left:0;right:0;padding:8px 10px;text-align:center;font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:700;background:rgba(0,0,0,.7);}
+.cph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;background:#050d1a;padding:12px;text-align:center;}
+.cph .ci{font-size:2.2rem;}.cph p{color:var(--muted);font-size:.77rem;line-height:1.4;}
+.pbtn{background:linear-gradient(135deg,#003a60,var(--accent));color:#fff;font-family:'Exo 2',sans-serif;font-weight:800;font-size:.87rem;padding:10px 14px;border-radius:9px;border:none;width:100%;cursor:pointer;margin-top:7px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.pbtn:active{transform:scale(.97);}
+.pbtn2{background:linear-gradient(135deg,#3a2a00,var(--orange));color:#000;margin-top:5px;font-size:.8rem;}
+
+/* FLASH */
+.flash{position:fixed;inset:0;background:#fff;z-index:999;opacity:0;pointer-events:none;transition:opacity .08s;}
+.flash.go{opacity:.85;}
+
+/* COUNTDOWN */
+.countdown{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Exo 2',sans-serif;font-size:3.5rem;font-weight:900;color:#fff;text-shadow:0 0 20px var(--accent);z-index:10;pointer-events:none;display:none;}
+
+/* CAPTURED */
+.cap-wrap{position:relative;border-radius:12px;overflow:hidden;margin-bottom:9px;border:3px solid var(--green);box-shadow:0 0 18px rgba(0,230,118,.25);}
+.cap-img{width:100%;display:block;}
+.cap-badge{position:absolute;top:7px;left:7px;background:rgba(0,0,0,.75);color:var(--green);font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:18px;border:1px solid rgba(0,230,118,.35);}
+
+/* ATT BUTTONS */
+.ar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.ab{border-radius:12px;border:none;cursor:pointer;padding:15px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Exo 2',sans-serif;transition:all .15s;}
+.ab:active{transform:scale(.95);}
+.ab .ai{font-size:1.6rem;}.ab .at{font-size:.9rem;font-weight:900;}.ab .as{font-size:.65rem;opacity:.8;}
+.a-st{background:linear-gradient(145deg,#003d1a,var(--green));color:#000;box-shadow:0 4px 16px rgba(0,230,118,.3);}
+.a-en{background:linear-gradient(145deg,#5a0000,var(--red));color:#fff;box-shadow:0 4px 16px rgba(255,68,68,.3);}
+.ab:disabled{opacity:.28;pointer-events:none;}
+
+/* ALERT */
+.al{border-radius:8px;padding:8px 11px;font-size:.78rem;display:none;align-items:flex-start;gap:6px;line-height:1.4;margin-bottom:8px;}
+.al.sh{display:flex;}
+.al-e{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);color:#ff9999;}
+.al-ok{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.3);color:var(--green);}
+.al-w{background:rgba(255,159,0,.09);border:1px solid rgba(255,159,0,.3);color:var(--orange);}
+
+/* BADGE */
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:50px;font-size:.67rem;font-weight:700;font-family:'Exo 2',sans-serif;}
+.bg{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.3);}
+.bo{background:rgba(255,159,0,.12);color:var(--orange);border:1px solid rgba(255,159,0,.3);}
+.br{background:rgba(255,68,68,.12);color:var(--red);border:1px solid rgba(255,68,68,.3);}
+
+/* TABLE */
+.tw{overflow-x:auto;border-radius:9px;}
+table{width:100%;border-collapse:collapse;font-size:.77rem;}
+th{background:rgba(0,201,255,.07);color:var(--accent);font-family:'Exo 2',sans-serif;font-size:.63rem;text-transform:uppercase;letter-spacing:.4px;padding:8px 9px;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:6px 9px;border-bottom:1px solid var(--border2);vertical-align:middle;color:var(--text);}
+.log-photo{width:42px;height:42px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform .15s;}
+.log-photo:active{transform:scale(1.08);}
+.no-photo{width:42px;height:42px;border-radius:8px;background:var(--input-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.num-badge{width:26px;height:26px;border-radius:50%;background:var(--accent2);color:#fff;font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* TABS */
+.tabs{display:flex;background:var(--input-bg);border-radius:9px;padding:3px;margin-bottom:11px;}
+.tab{flex:1;text-align:center;padding:8px 4px;border-radius:7px;font-family:'Exo 2',sans-serif;font-size:.76rem;font-weight:700;cursor:pointer;color:var(--muted);transition:all .2s;}
+.tab.on{background:var(--accent2);color:#fff;}
+
+/* EMP */
+.arow{display:flex;align-items:center;gap:7px;}
+.av{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;cursor:pointer;}
+.av0{width:30px;height:30px;border-radius:50%;background:var(--input-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0;}
+.ei{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ea{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);cursor:pointer;}
+.ea0{width:50px;height:50px;border-radius:50%;background:var(--input-bg);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+.en{font-family:'Exo 2',sans-serif;font-size:.97rem;font-weight:800;}.er{font-size:.73rem;color:var(--muted);}.es{font-size:.73rem;margin-top:3px;}
+
+/* THUMB */
+.thumb{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--green);margin:3px;}
+.tw2{display:flex;flex-wrap:wrap;margin:5px 0 3px;}
+.sc{font-family:'Exo 2',sans-serif;font-size:.76rem;color:var(--green);margin-bottom:3px;}
+
+/* LOG SECTIONS */
+.log-section-title{font-family:'Exo 2',sans-serif;font-size:.85rem;font-weight:800;padding:8px 12px;border-radius:9px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.lst-present{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2);}
+.lst-absent{background:rgba(255,68,68,.08);color:var(--red);border:1px solid rgba(255,68,68,.2);}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:11px;}
+.modal-bg.sh{display:flex;}
+.modal-img{max-width:92vw;max-height:72vh;border-radius:12px;border:2px solid var(--accent);}
+.modal-info{font-family:'Exo 2',sans-serif;font-size:.83rem;color:var(--accent);text-align:center;}
+.modal-close{background:rgba(255,255,255,.1);color:var(--text);border:1px solid var(--border);padding:7px 18px;border-radius:8px;font-family:'Exo 2',sans-serif;font-weight:700;cursor:pointer;}
+
+/* PIN MODAL */
+.pin-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;}
+.pin-modal.sh{display:flex;}
+.pin-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;width:90%;max-width:320px;box-shadow:0 0 40px rgba(0,0,0,.6);}
+.pin-box h3{font-family:'Exo 2',sans-serif;font-weight:800;color:var(--accent);margin-bottom:12px;font-size:1rem;}
+
+/* DATE FILTER */
+.date-filter{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.date-filter label{text-transform:none;font-size:.78rem;color:var(--muted);white-space:nowrap;}
+.date-filter input[type=date]{margin-bottom:0;flex:1;min-width:120px;}
+
+canvas{display:none;}
+hr{border:none;border-top:1px solid var(--border);margin:9px 0;}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);padding:8px 16px;border-radius:50px;font-family:'Exo 2',sans-serif;font-size:.8rem;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,.6);max-width:93vw;text-align:center;}
+#toast.on{opacity:1;}
+
+@media print{
+  header,.back,.btn,.tabs,.btn-row,.date-filter{display:none!important;}
+  .page{display:block!important;}
+  body{background:#fff;color:#000;}
+  .cd{border:1px solid #ccc;box-shadow:none;}
+  .log-section-title{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="flash" id="flash"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">👁 <b>Корманд</b>ҚАЙД</div>
+  <div class="header-right">
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Темаро иваз кун">🌙</button>
+    <div id="htime"><div id="hd"></div><span id="ht"></span></div>
+  </div>
+</header>
+
+<!-- ═══ MENU ═══ -->
+<div class="page active" id="pg-menu">
+  <div class="menu">
+    <div class="mh"><h1>КормандҚАЙД</h1><p>Суратгирии автоматӣ · Журнал · PDF</p></div>
+    <div class="mgrid">
+      <div class="mc" onclick="go('pg-login')"><div class="ic">🔐</div><h3>Воридшавӣ</h3><p>Қайди ҳузур бо сурат</p></div>
+      <div class="mc" onclick="go('pg-admin')"><div class="ic">⚙️</div><h3>Идоракунӣ</h3><p>Кормандон · Экспорт</p></div>
+      <div class="mc w" onclick="go('pg-log')"><div class="ic">📋</div><h3>Журнали Ҳузур</h3><p>Суратҳо · PDF · Чоп</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="page" id="pg-login">
+  <div class="wrap">
+    <button class="back" onclick="go('pg-menu')">← Бозгашт</button>
+    <div class="stitle">🔐 Воридшавӣ</div>
+    <div id="sf">
+      <div class="cd">
+        <label>Логин</label>
+        <input type="text" id="lu" placeholder="логини шумо" autocomplete="username" autocapitalize="none">
+        <label>Парол</label>
+        <input type="password" id="lp" placeholder="••••••" autocomplete="current-password">
+        <div class="al al-e" id="lerr">❌ Логин ё парол нодуруст!</div>
+        <button class="btn btn-p" onclick="doLogin()">Ворид шавед →</button>
+      </div>
+    </div>
+    <div id="sa" style="display:none">
+      <div class="cd"><div class="ei" id="eib"></div><div id="ast"></div></div>
+      <div class="cd" id="csec" style="display:none">
+        <div style="font-size:.78rem;margin-bottom:8px" id="cam-lbl"></div>
+        <div class="co" id="aco">
+          <div class="cph" id="aph"><div class="ci">⏳</div><p>Камера кушода мешавад...<br><small style="color:var(--muted);font-size:.68rem">Иҷозат диҳед агар пурсида шавад</small></p></div>
+          <video id="av" autoplay muted playsinline style="display:none"></video>
+          <div class="cam-ring" id="a-ring" style="display:none"></div>
+          <div class="cam-sl" id="a-sl" style="display:none"></div>
+          <div class="cam-msg" id="a-msg" style="display:none;color:var(--accent)"></div>
+          <div class="countdown" id="cntd"></div>
+        </div>
+        <canvas id="ac" width="480" height="360"></canvas>
+        <div id="photo-preview" style="display:none">
+          <div class="cap-wrap"><img id="cap-img" class="cap-img" src=""><div class="cap-badge" id="cap-badge"></div></div>
+          <div id="cap-status" style="text-align:center;font-family:'Exo 2',sans-serif;font-size:.87rem;margin-bottom:5px"></div>
+        </div>
+      </div>
+      <div class="ar">
+        <button class="ab a-st" id="bs" onclick="attAct('start')"><div class="ai">▶️</div><div class="at">ОҒОЗ</div><div class="as">Оғози кор</div></button>
+        <button class="ab a-en" id="be" onclick="attAct('end')"><div class="ai">⏹</div><div class="at">АНҶОМ</div><div class="as">Анҷоми кор</div></button>
+      </div>
+      <button class="btn btn-ol btn-sm" style="margin-top:9px" onclick="doLogout()">Хуруҷ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN ═══ -->
+<div class="page" id="pg-admin">
+  <div class="wrap">
+    <button class="back" onclick="go('pg-menu')">← Бозгашт</button>
+    <div class="stitle">⚙️ Идоракунӣ</div>
+    <div class="cd" id="aauth">
+      <label>🔑 Пароли Администратор</label>
+      <input type="password" id="apw" placeholder="admin123">
+      <div class="al al-e" id="aerr">❌ Парол нодуруст!</div>
+      <button class="btn btn-p" onclick="adminAuth()">Тасдиқ</button>
+    </div>
+    <div id="apanel" style="display:none">
+      <div class="tabs">
+        <div class="tab on" id="ta" onclick="aTab('add')">➕ Илова</div>
+        <div class="tab" id="tl" onclick="aTab('list')">📋 Рӯйхат</div>
+        <div class="tab" id="ts" onclick="aTab('settings')">⚙️ Танзим</div>
+      </div>
+
+      <!-- ADD EMP -->
+      <div id="atadd">
+        <div class="cd">
+          <label>Номи пурра</label><input type="text" id="efn" placeholder="Алӣ Раҳимов">
+          <label>Логин</label><input type="text" id="elg" placeholder="ali_rahimov" autocapitalize="none">
+          <label>Парол</label><input type="password" id="epw" placeholder="Парол...">
+          <label>Вазифа</label><input type="text" id="erl" placeholder="Омӯзгор...">
+        </div>
+        <div class="cd">
+          <div style="font-family:'Exo 2',sans-serif;font-weight:800;color:var(--accent);margin-bottom:5px;font-size:.88rem">📷 Сурати профил (ихтиёрӣ)</div>
+          <div class="co" id="rco">
+            <div class="cph" id="rph"><div class="ci">📷</div><p>Камераро фаъол кунед</p></div>
+            <video id="rv" autoplay muted playsinline style="display:none"></video>
+            <div class="cam-ring" id="rr" style="display:none"></div>
+            <div class="cam-sl" id="rs" style="display:none"></div>
+            <div class="cam-msg" id="rcm" style="display:none;color:var(--accent)"></div>
+          </div>
+          <canvas id="rc" width="200" height="200"></canvas>
+          <div class="tw2" id="thmbs"></div>
+          <div class="sc" id="sct" style="display:none"></div>
+          <div class="btn-row">
+            <button class="btn btn-ol btn-sm" onclick="openRegCam()">📷 Камера</button>
+            <button class="btn btn-sm" id="bcap" onclick="capPhoto()" disabled style="background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.3)">📸 Сурат Гир</button>
+            <button class="btn btn-sm btn-red" id="bclr" onclick="clrPhotos()" style="display:none">🗑</button>
+          </div>
+          <div class="al" id="ral"></div>
+          <button class="btn btn-p" onclick="saveEmp()">💾 Корманд Сабт Кун</button>
+        </div>
+      </div>
+
+      <!-- EMP LIST -->
+      <div id="atlist" style="display:none">
+        <div class="btn-row" style="margin-bottom:10px">
+          <button class="btn btn-ol btn-sm" onclick="exportJSON()">📤 Экспорт JSON</button>
+          <button class="btn btn-ol btn-sm" onclick="document.getElementById('import-file').click()">📥 Импорт JSON</button>
+          <button class="btn btn-purple btn-sm" onclick="exportEmpPDF()">📄 PDF</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+        <div class="cd" id="emplist"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="atsettings" style="display:none">
+        <div class="cd">
+          <div style="font-family:'Exo 2',sans-serif;font-weight:800;color:var(--accent);margin-bottom:10px;font-size:.9rem">🔑 Пароли Администраторро Иваз Кун</div>
+          <label>Пароли кунунӣ</label>
+          <input type="password" id="pw-old" placeholder="Пароли кунунӣ">
+          <label>Пароли нав</label>
+          <input type="password" id="pw-new" placeholder="Пароли нав">
+          <label>Пароли навро такрор кунед</label>
+          <input type="password" id="pw-new2" placeholder="Такрор...">
+          <div class="al" id="pw-alert"></div>
+          <button class="btn btn-p" onclick="changeAdminPw()">✅ Иваз Кун</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOG ═══ -->
+<div class="page" id="pg-log">
+  <div class="wrap wide">
+    <button class="back" onclick="go('pg-menu')">← Бозгашт</button>
+    <div class="stitle">📋 Журнали Ҳузур</div>
+
+    <!-- Date filter (needs admin pin) -->
+    <div class="cd">
+      <div class="date-filter">
+        <label>📅 Сана:</label>
+        <input type="date" id="log-date" onchange="onDateChange()">
+        <button class="btn btn-ol btn-sm" onclick="setToday()">Имрӯз</button>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="btn-row">
+      <button class="btn btn-purple btn-sm" onclick="exportLogPDF()">📄 PDF</button>
+      <button class="btn btn-ol btn-sm" onclick="window.print()">🖨️ Чоп</button>
+      <button class="btn btn-red btn-sm" onclick="askClearLog()">🗑 Тоза</button>
+    </div>
+
+    <div id="logout"></div>
+  </div>
+</div>
+
+<!-- ═══ PHOTO MODAL ═══ -->
+<div class="modal-bg" id="modal" onclick="closeModal()">
+  <img class="modal-img" id="modal-img" src="" alt="">
+  <div class="modal-info" id="modal-info"></div>
+  <button class="modal-close" onclick="closeModal()">✕ Бастан</button>
+</div>
+
+<!-- ═══ PIN MODAL (for protected actions) ═══ -->
+<div class="pin-modal" id="pin-modal">
+  <div class="pin-box">
+    <h3 id="pin-title">🔑 Пароли Администратор</h3>
+    <input type="password" id="pin-input" placeholder="Паролро ворид кунед" autocomplete="current-password">
+    <div class="al al-e" id="pin-err">❌ Парол нодуруст!</div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-p" onclick="confirmPin()" style="flex:1">Тасдиқ</button>
+      <button class="btn btn-ol btn-sm" onclick="closePin()">Бекор</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// STORAGE & STATE
+// ══════════════════════════════════════════════
+let emps = JSON.parse(localStorage.getItem('kd_emp')||'[]');
+let logs = JSON.parse(localStorage.getItem('kd_log')||'[]');
+let settings = JSON.parse(localStorage.getItem('kd_cfg')||'{"adminPw":"admin123","theme":"dark"}');
+
+let curE=null, attStream=null, regStream=null;
+let regPhotos=[], pendAct=null, camTimers=[];
+let pinCallback=null, logDate='';
+
+// ══════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t==='light'?'light':'');
+  document.getElementById('theme-btn').textContent=t==='light'?'🌙':'☀️';
+  settings.theme=t; saveCfg();
+}
+function toggleTheme(){applyTheme(settings.theme==='light'?'dark':'light');}
+applyTheme(settings.theme||'dark');
+
+// ══════════════════════════════════════════════
+// TIME
+// ══════════════════════════════════════════════
+function tick(){
+  const n=new Date(),wd=['Якш','Душ','Сеш','Чорш','Панҷш','Ҷум','Шанб'],mn=['Янв','Феб','Март','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  document.getElementById('hd').textContent=wd[n.getDay()]+', '+n.getDate()+' '+mn[n.getMonth()];
+  document.getElementById('ht').textContent=n.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(tick,1000);tick();
+
+// ══════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  stopAll();
+  if(id==='pg-log'){setToday();renderLog();}
+  if(id==='pg-admin'){document.getElementById('aauth').style.display='block';document.getElementById('apanel').style.display='none';document.getElementById('apw').value='';document.getElementById('aerr').classList.remove('sh');}
+  if(id==='pg-login'){document.getElementById('sf').style.display='block';document.getElementById('sa').style.display='none';document.getElementById('lu').value='';document.getElementById('lp').value='';document.getElementById('lerr').classList.remove('sh');}
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+let ttm;function toast(m,c='var(--accent)'){const t=document.getElementById('toast');t.textContent=m;t.style.color=c;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(()=>t.classList.remove('on'),3000);}
+
+// ══════════════════════════════════════════════
+// FLASH
+// ══════════════════════════════════════════════
+function doFlash(){const f=document.getElementById('flash');f.classList.add('go');setTimeout(()=>f.classList.remove('go'),120);}
+
+// ══════════════════════════════════════════════
+// PIN MODAL (admin password gate)
+// ══════════════════════════════════════════════
+function askPin(title, cb){
+  pinCallback=cb;
+  document.getElementById('pin-title').textContent='🔑 '+title;
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-err').classList.remove('sh');
+  document.getElementById('pin-modal').classList.add('sh');
+  setTimeout(()=>document.getElementById('pin-input').focus(),200);
+}
+function confirmPin(){
+  const v=document.getElementById('pin-input').value;
+  if(v!==settings.adminPw){document.getElementById('pin-err').classList.add('sh');return;}
+  document.getElementById('pin-err').classList.remove('sh');
+  document.getElementById('pin-modal').classList.remove('sh');
+  if(pinCallback) pinCallback();
+  pinCallback=null;
+}
+function closePin(){document.getElementById('pin-modal').classList.remove('sh');pinCallback=null;}
+document.getElementById('pin-input').addEventListener('keydown',e=>{if(e.key==='Enter')confirmPin();});
+
+// ══════════════════════════════════════════════
+// CAMERA
+// ══════════════════════════════════════════════
+async function startCam(vid,onOk,onFail){
+  stopCams();
+  if(!navigator.mediaDevices?.getUserMedia){onFail({name:'NotSupported'});return;}
+  for(const c of[{video:{facingMode:'user',width:{ideal:640}}},{video:{facingMode:{ideal:'user'}}},{video:true}]){
+    try{
+      const s=await navigator.mediaDevices.getUserMedia(c);
+      vid.srcObject=s;vid.style.display='block';
+      await new Promise((res,rej)=>{vid.onloadedmetadata=()=>vid.play().then(res).catch(rej);setTimeout(rej,8000);});
+      onOk(s);return;
+    }catch(e){if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){onFail(e);return;}}
+  }
+  onFail({name:'NotFoundError'});
+}
+function stopCams(){[attStream,regStream].forEach(s=>{if(s)s.getTracks().forEach(t=>t.stop())});attStream=null;regStream=null;}
+function stopAll(){camTimers.forEach(clearTimeout);camTimers=[];stopCams();}
+function camErr(e){
+  if(!e)return'Камера дастрас нест';
+  if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError')return'Иҷозат рад шуд.\nДар Chrome: 🔒 → Camera → Allow';
+  if(e.name==='NotFoundError')return'Камера ёфт нашуд';
+  return'Хатои камера';
+}
+function capFrame(vid,cv,w,h){cv.width=w;cv.height=h;const ctx=cv.getContext('2d');ctx.save();ctx.scale(-1,1);ctx.drawImage(vid,-w,0,w,h);ctx.restore();return cv.toDataURL('image/jpeg',.75);}
+
+// ══════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════
+function doLogin(){
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value;
+  const emp=emps.find(e=>e.lg.toLowerCase()===u&&e.pw===p);
+  if(!emp){document.getElementById('lerr').classList.add('sh');return;}
+  document.getElementById('lerr').classList.remove('sh');
+  curE=emp;
+  document.getElementById('sf').style.display='none';
+  document.getElementById('sa').style.display='block';
+  const tl=getTL(emp.id,todayStr());
+  let st='⚪ Имрӯз ҳанӯз қайд нашудааст';
+  if(tl?.s&&tl?.e)st='✅ '+tl.s+' — '+tl.e;
+  else if(tl?.s)st='▶️ Оғоз: '+tl.s;
+  document.getElementById('eib').innerHTML=(emp.av?`<img class="ea" src="${emp.av}" onclick="openModal('${emp.av}','${emp.fn}','профил')">`:`<div class="ea0">👤</div>`)+`<div><div class="en">${emp.fn}</div><div class="er">${emp.rl}</div><div class="es" style="color:var(--muted)">${st}</div></div>`;
+  document.getElementById('bs').disabled=!!(tl?.s);
+  document.getElementById('be').disabled=!(tl?.s)||!!(tl?.e);
+  document.getElementById('csec').style.display='none';
+  document.getElementById('photo-preview').style.display='none';
+}
+function doLogout(){curE=null;stopAll();go('pg-login');}
+
+// ══════════════════════════════════════════════
+// ATTENDANCE
+// ══════════════════════════════════════════════
+function attAct(type){
+  if(!curE)return;
+  pendAct=type;
+  stopAll();
+  const sec=document.getElementById('csec');
+  sec.style.display='block';
+  document.getElementById('photo-preview').style.display='none';
+  const lbl=document.getElementById('cam-lbl');
+  lbl.textContent=type==='start'?'📷 Суратгирии ОҒОЗ':'📷 Суратгирии АНҶОМ';
+  lbl.style.color=type==='start'?'var(--green)':'var(--red)';
+  const ph=document.getElementById('aph'),vid=document.getElementById('av');
+  ph.style.display='flex';ph.innerHTML='<div class="ci">⏳</div><p>Камера кушода мешавад...<br><small style="font-size:.68rem;color:var(--muted)">Иҷозат диҳед агар пурсида шавад</small></p>';
+  vid.style.display='none';
+  ['a-ring','a-sl','a-msg','cntd'].forEach(i=>document.getElementById(i).style.display='none');
+  setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'nearest'}),150);
+
+  startCam(vid,(stream)=>{
+    attStream=stream;ph.style.display='none';vid.style.display='block';
+    ['a-ring','a-sl','a-msg','cntd'].forEach(i=>document.getElementById(i).style.display='block');
+    const msg=document.getElementById('a-msg'),cd=document.getElementById('cntd');
+    msg.style.color='var(--orange)';
+    let cnt=3;cd.textContent=cnt;msg.textContent='Мустақим ба камера нигоҳ кунед...';
+    const itv=setInterval(()=>{
+      cnt--;
+      if(cnt>0){cd.textContent=cnt;}
+      else{
+        clearInterval(itv);cd.textContent='📸';msg.textContent='Сурат гирифта мешавад!';msg.style.color='var(--green)';
+        const t=setTimeout(()=>{
+          doFlash();
+          const dataUrl=capFrame(vid,document.getElementById('ac'),480,360);
+          if(attStream){attStream.getTracks().forEach(t=>t.stop());attStream=null;}
+          vid.style.display='none';
+          ['a-ring','a-sl','a-msg','cntd'].forEach(i=>document.getElementById(i).style.display='none');
+          ph.style.display='flex';ph.innerHTML='<div class="ci">✅</div><p style="color:var(--green)">Сурат гирифта шуд!</p>';
+          showCapPrev(dataUrl,type);
+          recordAtt(type,dataUrl);
+        },400);camTimers.push(t);
+      }
+    },1000);camTimers.push(itv);
+  },(err)=>{
+    ph.innerHTML=`<div class="ci">⚠️</div><p style="white-space:pre-line;font-size:.74rem;margin-bottom:7px">${camErr(err)}</p><button class="pbtn" onclick="attAct('${type}')">🔄 Дубора</button><button class="pbtn pbtn2" onclick="recordNoPhoto('${type}')">⏩ Бе Сурат</button>`;
+  });
+}
+
+function showCapPrev(url,type){
+  document.getElementById('cap-img').src=url;
+  const b=document.getElementById('cap-badge');
+  b.textContent=type==='start'?'▶️ ОҒОЗ':'⏹ АНҶОМ';
+  b.style.color=type==='start'?'var(--green)':'var(--red)';
+  const st=document.getElementById('cap-status');
+  st.textContent=type==='start'?'✅ Оғоз бо сурат сабт шуд!':'✅ Анҷом бо сурат сабт шуд!';
+  st.style.color=type==='start'?'var(--green)':'var(--orange)';
+  document.getElementById('photo-preview').style.display='block';
+}
+
+function recordAtt(type,photo){
+  if(!curE)return;
+  const n=new Date(),ts=n.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}),ds=todayStr();
+  let tl=getTL(curE.id,ds);
+  if(!tl){tl={id:curE.id,nm:curE.fn,dt:ds,s:null,e:null,sPhoto:null,ePhoto:null};logs.push(tl);}
+  if(type==='start'&&!tl.s){tl.s=ts;tl.sPhoto=photo||null;document.getElementById('bs').disabled=true;document.getElementById('be').disabled=false;updSt('▶️ Оғоз: '+ts);toast('▶️ Оғоз: '+ts,'var(--green)');}
+  else if(type==='end'&&tl.s&&!tl.e){tl.e=ts;tl.ePhoto=photo||null;document.getElementById('be').disabled=true;updSt('✅ '+tl.s+' — '+ts);toast('⏹ Анҷом: '+ts,'var(--orange)');}
+  else toast('⚠️ Аллакай сабт шудааст','var(--orange)');
+  saveLogs();
+}
+function recordNoPhoto(type){document.getElementById('csec').style.display='none';recordAtt(type,null);toast('⚠️ Бе сурат сабт шуд','var(--orange)');}
+function updSt(t){const el=document.getElementById('eib');const s=el.querySelector('.es');if(s)s.textContent=t;}
+function todayStr(){return new Date().toLocaleDateString('ru');}
+function getTL(id,ds){return logs.find(l=>l.id===id&&l.dt===ds);}
+function saveLogs(){localStorage.setItem('kd_log',JSON.stringify(logs));}
+function saveEmps(){localStorage.setItem('kd_emp',JSON.stringify(emps));}
+function saveCfg(){localStorage.setItem('kd_cfg',JSON.stringify(settings));}
+
+// ══════════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════════
+function adminAuth(){
+  if(document.getElementById('apw').value!==settings.adminPw){document.getElementById('aerr').classList.add('sh');return;}
+  document.getElementById('aerr').classList.remove('sh');
+  document.getElementById('aauth').style.display='none';
+  document.getElementById('apanel').style.display='block';
+  renderEmpList();
+}
+function aTab(t){
+  ['add','list','settings'].forEach(x=>{
+    document.getElementById('ta'+(x==='add'?'':'')+(x==='list'?'l':'')+(x==='settings'?'s':'')).classList.toggle('on',x===t);
+    document.getElementById('at'+x).style.display=x===t?'block':'none';
+  });
+  if(t==='list')renderEmpList();
+}
+// fix tab ids
+document.getElementById('ta').onclick=()=>aTab('add');
+document.getElementById('tl').onclick=()=>aTab('list');
+document.getElementById('ts').onclick=()=>aTab('settings');
+
+function aTab(t){
+  const map={add:'ta',list:'tl',settings:'ts'};
+  Object.keys(map).forEach(k=>document.getElementById(map[k]).classList.toggle('on',k===t));
+  document.getElementById('atadd').style.display=t==='add'?'block':'none';
+  document.getElementById('atlist').style.display=t==='list'?'block':'none';
+  document.getElementById('atsettings').style.display=t==='settings'?'block':'none';
+  if(t==='list')renderEmpList();
+}
+
+// ══════════════════════════════════════════════
+// CHANGE ADMIN PASSWORD
+// ══════════════════════════════════════════════
+function changeAdminPw(){
+  const old=document.getElementById('pw-old').value;
+  const nw=document.getElementById('pw-new').value;
+  const nw2=document.getElementById('pw-new2').value;
+  const al=document.getElementById('pw-alert');
+  al.className='al';
+  if(old!==settings.adminPw){al.className='al al-e sh';al.textContent='❌ Пароли кунунӣ нодуруст!';return;}
+  if(nw.length<4){al.className='al al-w sh';al.textContent='⚠️ Парол ҳадди аққал 4 рақам бошад';return;}
+  if(nw!==nw2){al.className='al al-e sh';al.textContent='❌ Паролҳо мувофиқ нестанд!';return;}
+  settings.adminPw=nw; saveCfg();
+  al.className='al al-ok sh';al.textContent='✅ Парол бомуваффақият иваз шуд!';
+  ['pw-old','pw-new','pw-new2'].forEach(i=>document.getElementById(i).value='');
+  toast('✅ Парол иваз шуд','var(--green)');
+}
+
+// ══════════════════════════════════════════════
+// REGISTER CAM
+// ══════════════════════════════════════════════
+function openRegCam(){
+  regPhotos=[];document.getElementById('thmbs').innerHTML='';document.getElementById('sct').style.display='none';document.getElementById('bclr').style.display='none';
+  const ph=document.getElementById('rph'),vid=document.getElementById('rv');
+  ph.style.display='flex';ph.innerHTML='<div class="ci">⏳</div><p>Камера...<br><small style="font-size:.68rem;color:var(--muted)">Иҷозат диҳед</small></p>';
+  vid.style.display='none';['rr','rs','rcm'].forEach(i=>document.getElementById(i).style.display='none');
+  startCam(vid,(s)=>{
+    regStream=s;ph.style.display='none';vid.style.display='block';
+    ['rr','rs','rcm'].forEach(i=>document.getElementById(i).style.display='block');
+    document.getElementById('rcm').textContent='👁 Рӯбарӯи камера нигоҳ кунед';
+    document.getElementById('bcap').disabled=false;
+  },(err)=>{
+    ph.innerHTML=`<div class="ci">⚠️</div><p style="font-size:.74rem;white-space:pre-line;margin-bottom:7px">${camErr(err)}</p><button class="pbtn" onclick="openRegCam()">🔄 Дубора</button>`;
+    showRAl(camErr(err),'al-w');
+  });
+}
+
+function capPhoto(){
+  const vid=document.getElementById('rv'),cv=document.getElementById('rc');
+  doFlash();
+  const url=capFrame(vid,cv,200,200);
+  regPhotos.push(url);
+  const img=document.createElement('img');img.className='thumb';img.src=url;
+  document.getElementById('thmbs').appendChild(img);
+  document.getElementById('sct').style.display='block';
+  document.getElementById('sct').textContent='✅ '+regPhotos.length+' сурат гирифта шуд';
+  document.getElementById('bclr').style.display='inline-flex';
+  document.getElementById('rcm').textContent='✅ Гирифта шуд!';
+  toast('📸 Сурат №'+regPhotos.length+' сабт шуд','var(--green)');
+}
+function clrPhotos(){regPhotos=[];document.getElementById('thmbs').innerHTML='';document.getElementById('sct').style.display='none';document.getElementById('bclr').style.display='none';}
+function showRAl(m,c){const e=document.getElementById('ral');e.className='al '+c+' sh';e.textContent=m;}
+
+// ══════════════════════════════════════════════
+// SAVE EMPLOYEE
+// ══════════════════════════════════════════════
+function saveEmp(){
+  const fn=document.getElementById('efn').value.trim();
+  const lg=document.getElementById('elg').value.trim().toLowerCase();
+  const pw=document.getElementById('epw').value;
+  const rl=document.getElementById('erl').value.trim()||'Корманд';
+  if(!fn||!lg||!pw){showRAl('⚠️ Ҳамаи майдонҳоро пур кунед!','al-e');return;}
+  if(emps.find(e=>e.lg===lg)){showRAl('⚠️ Ин логин аллакай мавҷуд!','al-e');return;}
+  emps.push({id:Date.now()+'',fn,lg,pw,rl,av:regPhotos[0]||null,dt:new Date().toLocaleDateString('ru')});
+  saveEmps();
+  showRAl('✅ '+fn+' бомуваффақият сабт шуд!','al-ok');
+  toast('✅ '+fn+' сабт шуд','var(--green)');
+  ['efn','elg','epw','erl'].forEach(i=>document.getElementById(i).value='');
+  clrPhotos();
+  if(regStream){regStream.getTracks().forEach(t=>t.stop());regStream=null;}
+  ['rv','rr','rs','rcm'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  document.getElementById('rph').style.display='flex';
+  document.getElementById('rph').innerHTML='<div class="ci">📷</div><p>Камераро фаъол кунед</p>';
+  document.getElementById('bcap').disabled=true;
+}
+
+// ══════════════════════════════════════════════
+// EMPLOYEE LIST
+// ══════════════════════════════════════════════
+function renderEmpList(){
+  const el=document.getElementById('emplist');
+  if(!emps.length){el.innerHTML='<div style="color:var(--muted);text-align:center;padding:14px">Ҳанӯз корманд нест</div>';return;}
+  el.innerHTML=`<div class="tw"><table>
+    <thead><tr><th>#</th><th>Сурат</th><th>Корманд</th><th>Логин</th><th>Вазифа</th><th></th></tr></thead>
+    <tbody>${emps.map((e,i)=>`<tr>
+      <td><div class="num-badge">${i+1}</div></td>
+      <td>${e.av?`<img class="log-photo" src="${e.av}" onclick="openModal('${e.av}','${e.fn}','профил')">`:`<div class="no-photo">👤</div>`}</td>
+      <td><b style="color:var(--text)">${e.fn}</b></td>
+      <td style="color:var(--muted)">${e.lg}</td>
+      <td>${e.rl}</td>
+      <td><button onclick="delEmp('${e.id}')" class="btn btn-red btn-sm">🗑</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+function delEmp(id){
+  if(!confirm('Нест кунед?'))return;
+  emps=emps.filter(e=>e.id!==id);saveEmps();renderEmpList();toast('🗑 Нест шуд','var(--red)');
+}
+
+// ══════════════════════════════════════════════
+// EXPORT / IMPORT JSON
+// ══════════════════════════════════════════════
+function exportJSON(){
+  const data=JSON.stringify({emps,logs,settings:{adminPw:settings.adminPw}},null,2);
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
+  a.download='davomat-backup-'+todayStr().replace(/\./g,'-')+'.json';
+  a.click();
+  toast('📤 Экспорт анҷом ёфт','var(--green)');
+}
+function importJSON(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(d.emps){emps=d.emps;saveEmps();}
+      if(d.logs){logs=d.logs;saveLogs();}
+      if(d.settings?.adminPw){settings.adminPw=d.settings.adminPw;saveCfg();}
+      renderEmpList();toast('📥 Импорт анҷом ёфт!','var(--green)');
+    }catch{toast('❌ Файл нодуруст аст','var(--red)');}
+  };
+  reader.readAsText(file);
+  ev.target.value='';
+}
+
+// ══════════════════════════════════════════════
+// DATE FILTER FOR LOG
+// ══════════════════════════════════════════════
+function setToday(){
+  const n=new Date();
+  const iso=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+  document.getElementById('log-date').value=iso;
+  logDate=todayStr();
+  renderLog();
+}
+
+function onDateChange(){
+  const v=document.getElementById('log-date').value;
+  if(!v)return;
+  const sel=new Date(v).toLocaleDateString('ru');
+  const todayRu=todayStr();
+  if(sel===todayRu){logDate=sel;renderLog();return;}
+  // Non-today date requires admin pin
+  askPin('Санаи дигарро кушодан',()=>{logDate=sel;renderLog();});
+}
+
+// ══════════════════════════════════════════════
+// LOG RENDER — present + absent sections, numbered
+// ══════════════════════════════════════════════
+function renderLog(){
+  const el=document.getElementById('logout');
+  const ds=logDate||todayStr();
+
+  // All logs for this date
+  const dayLogs=logs.filter(l=>l.dt===ds);
+
+  // Present: those who have at least start time, sorted by start time
+  const present=dayLogs.filter(l=>l.s).sort((a,b)=>{
+    const ta=a.s.split(':').map(Number),tb=b.s.split(':').map(Number);
+    return(ta[0]*60+ta[1])-(tb[0]*60+tb[1]);
+  });
+
+  // Absent: registered employees with no log today
+  const presentIds=new Set(present.map(l=>l.id));
+  const absent=emps.filter(e=>!presentIds.has(e.id));
+
+  if(!present.length&&!absent.length){
+    el.innerHTML=`<div style="color:var(--muted);text-align:center;padding:18px">📅 ${ds} — маълумот нест</div>`;
+    return;
+  }
+
+  let html='';
+
+  // PRESENT section
+  if(present.length){
+    html+=`<div class="log-section-title lst-present">✅ Қайд шуда — ${present.length} нафар</div>`;
+    html+=`<div class="tw" style="margin-bottom:14px"><table>
+      <thead><tr><th>#</th><th>Корманд</th><th>Оғоз</th><th>📷↑</th><th>Анҷом</th><th>📷↓</th><th>Вақт</th></tr></thead>
+      <tbody>${present.map((l,i)=>{
+        let dur='—';
+        if(l.s&&l.e){const[sh,sm]=l.s.split(':').map(Number),[eh,em]=l.e.split(':').map(Number),m=(eh*60+em)-(sh*60+sm);if(m>0)dur=m>=60?Math.floor(m/60)+'с '+(m%60)+'д':m+'д';}
+        const sImg=l.sPhoto?`<img class="log-photo" src="${l.sPhoto}" onclick="openModal('${l.sPhoto}','${l.nm}','оғоз ${l.s||''}')">`:`<div class="no-photo">📷</div>`;
+        const eImg=l.ePhoto?`<img class="log-photo" src="${l.ePhoto}" onclick="openModal('${l.ePhoto}','${l.nm}','анҷом ${l.e||''}')">`:`<div class="no-photo">📷</div>`;
+        const emp=emps.find(e=>e.id===l.id);
+        return`<tr>
+          <td><div class="num-badge">${i+1}</div></td>
+          <td><div class="arow">${emp?.av?`<img class="av" src="${emp.av}" onclick="openModal('${emp.av}','${emp.fn}','профил')">`:`<div class="av0">👤</div>`}<span style="color:var(--text)">${l.nm}</span></div></td>
+          <td style="color:var(--green);font-family:'Exo 2',sans-serif;font-weight:700">${l.s||'—'}</td>
+          <td>${sImg}</td>
+          <td style="color:var(--red);font-family:'Exo 2',sans-serif;font-weight:700">${l.e||'—'}</td>
+          <td>${eImg}</td>
+          <td style="font-family:'Exo 2',sans-serif;font-weight:700;color:var(--accent)">${dur}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+  }
+
+  // ABSENT section
+  if(absent.length){
+    html+=`<div class="log-section-title lst-absent">❌ Қайд нашуда — ${absent.length} нафар</div>`;
+    html+=`<div class="tw"><table>
+      <thead><tr><th>#</th><th>Сурат</th><th>Корманд</th><th>Вазифа</th><th>Ҳолат</th></tr></thead>
+      <tbody>${absent.map((e,i)=>`<tr>
+        <td><div class="num-badge" style="background:rgba(255,68,68,.3)">${i+1}</div></td>
+        <td>${e.av?`<img class="log-photo" src="${e.av}" onclick="openModal('${e.av}','${e.fn}','профил')">`:`<div class="no-photo">👤</div>`}</td>
+        <td style="color:var(--text)"><b>${e.fn}</b></td>
+        <td style="color:var(--muted)">${e.rl}</td>
+        <td><span class="bdg br">Ғоиб</span></td>
+      </tr>`).join('')}</tbody></table></div>`;
+  }
+
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════
+// CLEAR LOG (with admin pin)
+// ══════════════════════════════════════════════
+function askClearLog(){
+  askPin('Журналро тоза кунед?',()=>{
+    logs=[];saveLogs();renderLog();toast('🗑 Журнал тоза шуд','var(--red)');
+  });
+}
+
+// ══════════════════════════════════════════════
+// PHOTO MODAL
+// ══════════════════════════════════════════════
+function openModal(src,name,label){
+  document.getElementById('modal-img').src=src;
+  document.getElementById('modal-info').textContent=name+' — '+label;
+  document.getElementById('modal').classList.add('sh');
+}
+function closeModal(){document.getElementById('modal').classList.remove('sh');}
+
+// ══════════════════════════════════════════════
+// PDF EXPORT — LOG
+// ══════════════════════════════════════════════
+function exportLogPDF(){
+  const ds=logDate||todayStr();
+  const dayLogs=logs.filter(l=>l.dt===ds).filter(l=>l.s).sort((a,b)=>{
+    const ta=a.s.split(':').map(Number),tb=b.s.split(':').map(Number);return(ta[0]*60+ta[1])-(tb[0]*60+tb[1]);
+  });
+  const absent=emps.filter(e=>!dayLogs.find(l=>l.id===e.id));
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+
+  // Header
+  doc.setFontSize(18);doc.setTextColor(0,150,200);
+  doc.text('KormandQAYD — Jurnal',14,18);
+  doc.setFontSize(11);doc.setTextColor(80,80,80);
+  doc.text('Sana: '+ds,14,26);
+  doc.text('Qayd shuda: '+dayLogs.length+' | Goyib: '+absent.length,14,32);
+
+  // Present table
+  doc.setFontSize(12);doc.setTextColor(0,180,80);
+  doc.text('✓ Qayd shuda ('+dayLogs.length+' nafar)',14,42);
+  doc.setFontSize(9);doc.setTextColor(40,40,40);
+  const headers=['#','Nom','Boshlanish','Tugash','Vaqt'];
+  const rows=dayLogs.map((l,i)=>{
+    let dur='—';
+    if(l.s&&l.e){const[sh,sm]=l.s.split(':').map(Number),[eh,em]=l.e.split(':').map(Number),m=(eh*60+em)-(sh*60+sm);if(m>0)dur=m>=60?Math.floor(m/60)+'s '+(m%60)+'d':m+'d';}
+    return[String(i+1),l.nm,l.s||'—',l.e||'—',dur];
+  });
+
+  let y=47;
+  const colW=[10,70,25,25,20];
+  // Header row
+  doc.setFillColor(0,100,180);doc.setTextColor(255,255,255);
+  doc.rect(14,y,150,7,'F');
+  let x=14;headers.forEach((h,i)=>{doc.text(h,x+2,y+5);x+=colW[i];});
+  y+=7;
+  // Data rows
+  rows.forEach((row,ri)=>{
+    doc.setFillColor(ri%2?248:255,ri%2?250:255,ri%2?255:255);
+    doc.setTextColor(40,40,40);
+    doc.rect(14,y,150,6,'F');
+    x=14;row.forEach((cell,i)=>{doc.text(String(cell).substring(0,30),x+2,y+4.5);x+=colW[i];});
+    y+=6;
+    if(y>270){doc.addPage();y=20;}
+  });
+
+  // Absent table
+  if(absent.length){
+    y+=8;
+    doc.setFontSize(12);doc.setTextColor(200,50,50);
+    doc.text('✗ Goyib ('+absent.length+' nafar)',14,y);y+=6;
+    doc.setFontSize(9);
+    const aHeaders=['#','Nom','Lavozim'];
+    const aRows=absent.map((e,i)=>[String(i+1),e.fn,e.rl]);
+    doc.setFillColor(180,0,0);doc.setTextColor(255,255,255);
+    doc.rect(14,y,100,7,'F');
+    x=14;[12,60,28].forEach((w,i)=>{doc.text(aHeaders[i],x+2,y+5);x+=w;});y+=7;
+    aRows.forEach((row,ri)=>{
+      doc.setFillColor(ri%2?255:248,ri%2?248:255,ri%2?248:255);doc.setTextColor(40,40,40);
+      doc.rect(14,y,100,6,'F');
+      x=14;[12,60,28].forEach((w,i)=>{doc.text(String(row[i]).substring(0,25),x+2,y+4.5);x+=w;});y+=6;
+      if(y>270){doc.addPage();y=20;}
+    });
+  }
+
+  doc.save('davomat-'+ds.replace(/\./g,'-')+'.pdf');
+  toast('📄 PDF тайёр шуд','var(--green)');
+}
+
+// ══════════════════════════════════════════════
+// PDF EXPORT — EMPLOYEE LIST
+// ══════════════════════════════════════════════
+function exportEmpPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  doc.setFontSize(16);doc.setTextColor(0,150,200);
+  doc.text('KormandQAYD — Xodimlar royxati',14,16);
+  doc.setFontSize(10);doc.setTextColor(100,100,100);
+  doc.text('Jami: '+emps.length+' nafar | Sana: '+todayStr(),14,23);
+  const headers=['#','Ism Familiya','Login','Lavozim','Qo\'shilgan'];
+  const rows=emps.map((e,i)=>[String(i+1),e.fn,e.lg,e.rl,e.dt||'']);
+  let y=30;
+  const colW=[10,60,35,30,20];
+  doc.setFillColor(0,100,180);doc.setTextColor(255,255,255);
+  doc.rect(14,y,155,7,'F');
+  let x=14;headers.forEach((h,i)=>{doc.text(h,x+1,y+5);x+=colW[i];});y+=7;
+  rows.forEach((row,ri)=>{
+    doc.setFillColor(ri%2?248:255,ri%2?250:255,255);doc.setTextColor(30,30,30);
+    doc.rect(14,y,155,6,'F');
+    x=14;row.forEach((cell,i)=>{doc.text(String(cell).substring(0,28),x+1,y+4.5);x+=colW[i];});y+=6;
+    if(y>275){doc.addPage();y=15;}
+  });
+  doc.save('xodimlar-'+todayStr().replace(/\./g,'-')+'.pdf');
+  toast('📄 PDF тайёр шуд','var(--green)');
+}
+
+// ══════════════════════════════════════════════
+// PWA SERVICE WORKER
+// ══════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+if(!emps.length) setTimeout(()=>toast('💡 Идоракунӣ → admin123 → Корманд илова кунед'),1500);
+</script>
+</body>
+</html>
